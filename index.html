@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+    
+    <title>شاعر هوشمند جمینی</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Vazirmatn Font -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#8b5cf6', // Violet-500
+                        secondary: '#1e293b', // Slate-800
+                        accent: '#f43f5e', // Rose-500
+                        lightBg: '#f8fafc', // Slate-50
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html, body {
+            overflow-x: hidden; touch-action: pan-y; -webkit-tap-highlight-color: transparent;
+        }
+        body { transition: background-color 0.3s, color 0.3s; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+        
+        .slider-thumb::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 18px; height: 18px; background: #8b5cf6;
+            cursor: pointer; border-radius: 50%; border: 2px solid white;
+        }
+
+        .nav-item.active { color: #8b5cf6; font-weight: bold; }
+        .nav-item.active i { transform: translateY(-2px); }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        @keyframes roll {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .rolling { animation: roll 0.5s ease-in-out; }
+    </style>
+</head>
+<body class="font-sans antialiased h-[100dvh] flex flex-col bg-lightBg text-slate-800 dark:bg-[#0f172a] dark:text-slate-200 transition-colors duration-300 overflow-hidden">
+
+    <!-- Header -->
+    <header class="w-full shrink-0 px-4 py-3 flex justify-between items-center bg-white dark:bg-slate-900 shadow-sm z-20">
+        <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-l from-primary to-purple-600">
+            <i class="fa-solid fa-feather-pointed ml-2 text-primary"></i>شاعر جمینی
+        </h1>
+        <button onclick="toggleTheme()" class="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-yellow-400 active:scale-90 transition">
+            <i id="themeIcon" class="fa-solid fa-moon"></i>
+        </button>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-24 relative" id="mainContainer">
+        
+        <!-- === TAB 1: GENERATOR === -->
+        <div id="tab-generator" class="w-full max-w-md mx-auto space-y-4 transition-opacity duration-300">
+            
+            <!-- API Settings -->
+            <div class="bg-white dark:bg-secondary rounded-2xl p-3 shadow-sm border border-slate-200 dark:border-slate-700">
+                <button onclick="toggleApiSection()" class="w-full flex justify-between items-center text-slate-700 dark:text-slate-300 text-xs font-bold">
+                    <span><i class="fa-solid fa-key ml-1 text-yellow-500"></i>تنظیمات API</span>
+                    <i id="apiArrow" class="fa-solid fa-chevron-down text-[10px] transition-transform"></i>
+                </button>
+                <div id="apiSection" class="hidden mt-3 space-y-3 border-t border-slate-100 dark:border-slate-700 pt-2">
+                    <div class="flex gap-2">
+                        <input type="text" id="apiKeyInput" placeholder="کلید API جدید..." class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:border-primary dark:text-white dir-ltr placeholder:text-right">
+                        <button onclick="addApiKey()" class="bg-green-500 text-white w-8 rounded-lg shadow"><i class="fa-solid fa-plus text-xs"></i></button>
+                    </div>
+                    <div id="keysList" class="max-h-24 overflow-y-auto space-y-1 text-[10px]"></div>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <button onclick="resetApp()" class="text-red-500 text-[10px] border border-red-500/20 px-2 py-1 rounded hover:bg-red-500/10">بازنشانی برنامه</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Form -->
+            <main class="bg-white dark:bg-secondary rounded-2xl p-4 shadow-sm border border-slate-200 dark:border-slate-700 space-y-4">
+                
+                <!-- Topic -->
+                <div>
+                    <label class="block text-slate-500 dark:text-slate-400 text-[10px] font-bold mb-1">موضوع شعر *</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="topicInput" placeholder="مثلا: تنهایی، سفر، قهوه..." class="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary dark:text-white transition">
+                        <button onclick="rollDice()" id="diceBtn" class="bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 border border-indigo-200 dark:border-indigo-800 w-10 rounded-xl flex items-center justify-center hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition shadow-sm">
+                            <i class="fa-solid fa-dice text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Context -->
+                <div>
+                    <label class="block text-slate-500 dark:text-slate-400 text-[10px] font-bold mb-1">توضیحات تکمیلی</label>
+                    <input type="text" id="contextInput" placeholder="نکته خاصی هست؟ (مثلا: اسم مریم باشه...)" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-primary dark:text-white">
+                </div>
+
+                <!-- Selectors -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-500 dark:text-slate-400 text-[10px] font-bold mb-1">سبک و لحن</label>
+                        <select id="toneSelect" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl px-2 py-2 text-xs focus:outline-none focus:border-primary dark:text-white">
+                            <option value="romantic">عاشقانه</option>
+                            <option value="classic">کلاسیک (حافظ/سعدی)</option>
+                            <option value="uncensored" class="text-red-500 font-bold">بی‌پروا (+18)</option>
+                            <option value="epic">حماسی (فردوسی)</option>
+                            <option value="erfani">عرفانی (مولانا)</option>
+                            <option value="humorous">طنز</option>
+                            <option value="sad">غمگین</option>
+                            <option value="street">خیابونی/لاتی</option>
+                            <option value="diss">رپ/دیس/کل‌کل</option>
+                            <option value="birthday">تبریک تولد</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-500 dark:text-slate-400 text-[10px] font-bold mb-1">قالب</label>
+                        <select id="formatSelect" onchange="updateLengthLabel()" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl px-2 py-2 text-xs focus:outline-none focus:border-primary dark:text-white">
+                            <option value="ghazal">غزل</option>
+                            <option value="ghasideh">قصیده</option>
+                            <option value="robai">رباعی/دوبیتی</option>
+                            <option value="masnavi">مثنوی</option>
+                            <option value="chaharpareh">چهارپاره</option>
+                            <option value="mostazad">مستزاد</option>
+                            <option value="no">شعر نو/سپید</option>
+                            <option value="free">تکست آزاد</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Sliders -->
+                <div class="grid grid-cols-2 gap-4 pt-1">
+                    <div>
+                        <div class="flex justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                            <span>قافیه</span>
+                            <span id="rhymeValue" class="text-primary">زیاد</span>
+                        </div>
+                        <input type="range" id="rhymeRange" min="1" max="5" value="4" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                            <span id="lengthLabel">تعداد بیت</span>
+                            <span id="lengthValue" class="text-primary">5</span>
+                        </div>
+                        <input type="range" id="lengthRange" min="2" max="20" value="5" class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    </div>
+                </div>
+
+                <!-- Generate Btn -->
+                <button onclick="generatePoem()" id="generateBtn" class="w-full bg-gradient-to-r from-primary to-purple-700 text-white font-bold py-3 rounded-xl shadow-lg shadow-primary/30 active:scale-95 transition flex justify-center items-center gap-2 text-sm">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <span>بسرای</span>
+                </button>
+            </main>
+
+            <!-- Result Box -->
+            <div id="resultSection" class="hidden opacity-0 transition-all duration-500 pb-10">
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-1 shadow-md border border-slate-200 dark:border-slate-600 relative overflow-hidden">
+                    <div id="loadingOverlay" class="hidden absolute inset-0 bg-white/95 dark:bg-slate-900/95 z-20 flex flex-col items-center justify-center">
+                        <div class="animate-spin w-10 h-10 border-4 border-slate-200 dark:border-slate-700 border-t-primary rounded-full mb-3"></div>
+                        <p class="text-xs font-bold text-slate-500 animate-pulse" id="loadingText">در حال سرودن...</p>
+                    </div>
+
+                    <div class="flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 p-2 px-3 rounded-t-xl border-b border-slate-100 dark:border-slate-700">
+                        <span class="text-[10px] font-bold text-slate-400">خروجی</span>
+                        <div class="flex gap-3">
+                            <button onclick="copyToClipboard('poemOutput')" class="text-slate-400 hover:text-primary transition"><i class="fa-regular fa-copy"></i></button>
+                        </div>
+                    </div>
+
+                    <div id="poemOutput" class="p-4 text-slate-800 dark:text-slate-200 leading-8 whitespace-pre-wrap font-medium text-sm text-center min-h-[80px]" contenteditable="true"></div>
+                    
+                    <div class="flex gap-2 p-2 border-t border-slate-100 dark:border-slate-700">
+                        <button onclick="explainPoem()" class="flex-1 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-[10px] py-2 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition flex justify-center items-center gap-1">
+                            <i class="fa-solid fa-book-open"></i> تفسیر
+                        </button>
+                        <button onclick="continuePoem()" class="flex-1 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 text-[10px] py-2 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition flex justify-center items-center gap-1">
+                            <i class="fa-solid fa-forward"></i> ادامه
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === TAB 2: HISTORY === -->
+        <div id="tab-history" class="w-full max-w-md mx-auto hidden transition-opacity duration-300">
+            <div class="flex justify-between items-center mb-4 px-2">
+                <h2 class="text-lg font-bold text-slate-700 dark:text-slate-200">تاریخچه</h2>
+                <button onclick="clearHistory()" class="text-red-500 text-xs px-2 py-1 bg-red-50 dark:bg-red-900/20 rounded border border-red-200 dark:border-red-900/50 hover:bg-red-100 transition"><i class="fa-solid fa-trash-can"></i> حذف همه</button>
+            </div>
+            <div id="historyList" class="space-y-3 pb-20"></div>
+        </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <nav class="fixed bottom-0 w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-around py-2 pb-safe z-30 shadow-[0_-5px_10px_rgba(0,0,0,0.05)]">
+        <button onclick="switchTab('generator')" class="nav-item active flex flex-col items-center p-2 text-slate-400 dark:text-slate-500 transition w-full">
+            <i class="fa-solid fa-pen-nib text-lg mb-1"></i><span class="text-[10px]">تولید شعر</span>
+        </button>
+        <button onclick="switchTab('history')" class="nav-item flex flex-col items-center p-2 text-slate-400 dark:text-slate-500 transition w-full">
+            <i class="fa-solid fa-clock-rotate-left text-lg mb-1"></i><span class="text-[10px]">تاریخچه</span>
+        </button>
+    </nav>
+
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-800 w-full max-w-md rounded-2xl shadow-2xl flex flex-col max-h-[85vh] transform scale-95 transition-transform duration-300 relative" id="modalContent">
+            <button onclick="closeModal()" class="absolute top-3 left-3 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 flex items-center justify-center z-10 hover:text-red-500 transition"><i class="fa-solid fa-xmark"></i></button>
+            <div class="p-4 border-b border-slate-100 dark:border-slate-700 mt-1">
+                <h3 class="font-bold text-slate-800 dark:text-white text-sm" id="modalTitle">عنوان</h3>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1" id="modalBody"></div>
+            <div class="p-4 border-t border-slate-100 dark:border-slate-700 flex gap-2 hidden" id="modalFooter">
+                <button onclick="saveEdit()" class="flex-1 bg-primary text-white py-2 rounded-xl text-sm font-bold shadow-lg hover:bg-purple-700 transition">ذخیره تغییرات</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 -translate-y-20 opacity-0 px-4 py-2 rounded-full shadow-xl text-xs font-bold flex items-center gap-2 transition-all duration-500 z-[60] min-w-[150px] justify-center text-white bg-slate-800">
+        <i id="toastIcon"></i><span id="toastMessage"></span>
+    </div>
+
+    <script>
+        // --- 1. Register Service Worker for PWA ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW registered:', reg))
+                    .catch(err => console.log('SW failed:', err));
+            });
+        }
+
+        // --- 2. State & Defaults ---
+        let apiKeys = [];
+        let history = [];
+        let currentKeyIndex = 0;
+        let isGenerating = false;
+        let currentEditingId = null;
+        let currentPoemId = null; // Track current poem to attach explanation
+
+        const randomTopics = [
+            "عشق در پاییز", "حسرت روزهای گذشته", "امید به آینده", "قهوه و باران", "سکوت شب",
+            "مادر", "غروب جمعه", "رفیق قدیمی", "خیانت", "آزادی", 
+            "چشم‌های یار", "انتظار", "سفر در زمان", "گم شدن در رویا", "صدای موج دریا"
+        ];
+
+        // --- 3. Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                const storedTheme = localStorage.getItem('theme');
+                if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                    document.getElementById('themeIcon').className = 'fa-solid fa-sun';
+                }
+
+                const storedKeys = localStorage.getItem('geminiApiKeys');
+                if (storedKeys) try { apiKeys = JSON.parse(storedKeys); } catch(e) { apiKeys = []; }
+                
+                const storedHistory = localStorage.getItem('geminiPoemHistory');
+                if (storedHistory) try { history = JSON.parse(storedHistory); } catch(e) { history = []; }
+
+                renderKeyList();
+                renderHistory();
+                updateLengthLabel();
+                
+                const rhymeRange = document.getElementById('rhymeRange');
+                const labels = ["آزاد", "کم", "متوسط", "زیاد", "سخت"];
+                rhymeRange.addEventListener('input', (e) => document.getElementById('rhymeValue').textContent = labels[e.target.value - 1]);
+                document.getElementById('lengthRange').addEventListener('input', (e) => document.getElementById('lengthValue').textContent = e.target.value);
+
+            } catch (err) { console.error(err); }
+        });
+
+        // --- 4. UI Helpers ---
+        function toggleTheme() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+            document.getElementById('themeIcon').className = html.classList.contains('dark') ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        }
+
+        function toggleApiSection() {
+            document.getElementById('apiSection').classList.toggle('hidden');
+            document.getElementById('apiArrow').classList.toggle('rotate-180');
+        }
+
+        function switchTab(tab) {
+            const genTab = document.getElementById('tab-generator');
+            const hisTab = document.getElementById('tab-history');
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            if (tab === 'generator') {
+                genTab.classList.remove('hidden');
+                hisTab.classList.add('hidden');
+                navItems[0].classList.add('active');
+                navItems[1].classList.remove('active');
+            } else {
+                genTab.classList.add('hidden');
+                hisTab.classList.remove('hidden');
+                navItems[0].classList.remove('active');
+                navItems[1].classList.add('active');
+                renderHistory();
+            }
+        }
+
+        function resetApp() {
+            if(confirm('آیا مطمئن هستید؟ تمام اطلاعات پاک خواهد شد.')){
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        function updateLengthLabel() {
+            const format = document.getElementById('formatSelect').value;
+            const label = document.getElementById('lengthLabel');
+            if (['ghazal', 'ghasideh', 'masnavi', 'robai', 'chaharpareh', 'mostazad'].includes(format)) {
+                label.innerText = 'تعداد بیت';
+            } else {
+                label.innerText = 'تعداد خط';
+            }
+        }
+
+        function rollDice() {
+            const icon = document.getElementById('diceBtn').querySelector('i');
+            icon.classList.add('rolling');
+            setTimeout(() => icon.classList.remove('rolling'), 500);
+            document.getElementById('topicInput').value = randomTopics[Math.floor(Math.random() * randomTopics.length)];
+        }
+
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            document.getElementById('toastMessage').innerText = msg;
+            
+            let bg = 'bg-slate-800';
+            let ic = 'fa-info';
+            if(type === 'success') { bg = 'bg-green-600'; ic = 'fa-check'; }
+            else if(type === 'error') { bg = 'bg-red-600'; ic = 'fa-times'; }
+            else if(type === 'warning') { bg = 'bg-orange-500'; ic = 'fa-exclamation'; }
+
+            toast.className = `fixed top-5 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-full shadow-xl text-xs font-bold flex items-center gap-2 transition-all duration-500 z-[60] min-w-[150px] justify-center text-white ${bg}`;
+            icon.className = `fa-solid ${ic}`;
+            
+            toast.classList.remove('-translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('-translate-y-20', 'opacity-0'), 2500);
+        }
+
+        // --- 5. Logic: API Keys ---
+        function addApiKey() {
+            const val = document.getElementById('apiKeyInput').value.trim();
+            if (val && !apiKeys.includes(val)) {
+                apiKeys.push(val);
+                localStorage.setItem('geminiApiKeys', JSON.stringify(apiKeys));
+                document.getElementById('apiKeyInput').value = '';
+                renderKeyList();
+                showToast('کلید ذخیره شد', 'success');
+            }
+        }
+
+        function removeKey(index) {
+            apiKeys.splice(index, 1);
+            localStorage.setItem('geminiApiKeys', JSON.stringify(apiKeys));
+            renderKeyList();
+        }
+
+        function renderKeyList() {
+            const container = document.getElementById('keysList');
+            container.innerHTML = '';
+            apiKeys.forEach((key, index) => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center bg-slate-100 dark:bg-slate-800 p-1.5 rounded border border-slate-200 dark:border-slate-700';
+                div.innerHTML = `
+                    <span class="font-mono text-slate-500">${key.substring(0, 4)}...${key.substring(key.length - 4)}</span>
+                    <button onclick="removeKey(${index})" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-times"></i></button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // --- 6. Logic: Generator ---
+        async function callGemini(prompt, loadingMsg) {
+            if (isGenerating) return null;
+            if (apiKeys.length === 0) {
+                document.getElementById('apiSection').classList.remove('hidden');
+                showToast('لطفا کلید API وارد کنید', 'error');
+                return null;
+            }
+
+            const loading = document.getElementById('loadingOverlay');
+            document.getElementById('loadingText').innerText = loadingMsg || "در حال پردازش...";
+            loading.classList.remove('hidden');
+            isGenerating = true;
+
+            const model = "gemini-2.5-flash-preview-09-2025";
+            let resultText = null;
+
+            for (let i = 0; i < apiKeys.length; i++) {
+                const key = apiKeys[currentKeyIndex];
+                try {
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    });
+
+                    if (res.status === 429) {
+                        currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
+                        continue;
+                    }
+                    
+                    const data = await res.json();
+                    if (data.candidates && data.candidates[0].content) {
+                        resultText = data.candidates[0].content.parts[0].text;
+                        resultText = resultText.replace(/\*\*/g, '').replace(/\*/g, '');
+                        break;
+                    }
+                } catch (e) {
+                    currentKeyIndex = (currentKeyIndex + 1) % apiKeys.length;
+                }
+            }
+
+            loading.classList.add('hidden');
+            isGenerating = false;
+
+            if (!resultText) showToast('خطا در ارتباط با سرور', 'error');
+            return resultText;
+        }
+
+        async function generatePoem() {
+            const topic = document.getElementById('topicInput').value.trim();
+            const context = document.getElementById('contextInput').value.trim();
+            
+            if (!topic) return showToast('موضوع شعر الزامی است', 'warning');
+
+            const resSection = document.getElementById('resultSection');
+            resSection.classList.remove('hidden');
+            setTimeout(() => resSection.classList.remove('opacity-0'), 10);
+            resSection.scrollIntoView({ behavior: 'smooth' });
+
+            const toneMap = {
+                'romantic': 'Romantic', 'classic': 'Classic (Hafez/Saadi)', 
+                'epic': 'Epic (Ferdowsi)', 'erfani': 'Mystical (Rumi)', 
+                'humorous': 'Funny', 'sad': 'Sad', 
+                'street': 'Slang/Lati', 'diss': 'Diss/Rap', 'birthday': 'Birthday',
+                'uncensored': 'Uncensored/Explicit/Raw/Dark (+18 Tone)' 
+            };
+
+            const tone = document.getElementById('toneSelect').value;
+            const format = document.getElementById('formatSelect').value;
+            const length = document.getElementById('lengthRange').value;
+
+            const prompt = `
+                Write a Persian poem.
+                Topic: "${topic}"
+                Context: "${context}"
+                Style: ${toneMap[tone]}
+                Format: ${format}
+                Length: Approx ${length} parts.
+                If style is Uncensored, do not hold back on harsh or explicit themes if context allows.
+                Output ONLY the poem text in Persian.
+            `;
+
+            const text = await callGemini(prompt, "در حال سرودن...");
+            
+            if (text) {
+                document.getElementById('poemOutput').innerText = text;
+                currentPoemId = Date.now();
+                addToHistory(text, {
+                    id: currentPoemId,
+                    topic: topic,
+                    tone: document.getElementById('toneSelect').options[document.getElementById('toneSelect').selectedIndex].text,
+                    isFavorite: false,
+                    explanation: null // Placeholder for explanation
+                });
+            }
+        }
+
+        async function explainPoem() {
+            const text = document.getElementById('poemOutput').innerText;
+            if (!text) return showToast('شعری وجود ندارد', 'warning');
+            
+            const prompt = `Act as a Persian literature expert. Explain this poem line by line or overall meaning in simple Persian:\n${text}`;
+            const explanation = await callGemini(prompt, "در حال تحلیل...");
+            
+            if (explanation) {
+                // Show modal
+                openModal('تفسیر و معنی', `<div class="text-sm leading-7 text-justify whitespace-pre-wrap">${explanation}</div>`, false);
+                
+                // Save explanation to history
+                const idx = history.findIndex(h => h.id === currentPoemId);
+                if (idx > -1) {
+                    history[idx].explanation = explanation;
+                    localStorage.setItem('geminiPoemHistory', JSON.stringify(history));
+                    renderHistory();
+                    showToast('تفسیر در تاریخچه ذخیره شد', 'success');
+                }
+            }
+        }
+
+        async function continuePoem() {
+            const text = document.getElementById('poemOutput').innerText;
+            if (!text) return;
+            const prompt = `Continue this Persian poem with the same style. Add 3-4 more verses.\nPrevious:\n${text}\nOutput ONLY new verses.`;
+            const continuation = await callGemini(prompt, "در حال ادامه دادن...");
+            if (continuation) {
+                const newText = text + "\n\n" + continuation;
+                document.getElementById('poemOutput').innerText = newText;
+                
+                // Update history poem content
+                const idx = history.findIndex(h => h.id === currentPoemId);
+                if (idx > -1) {
+                    history[idx].poem = newText;
+                    localStorage.setItem('geminiPoemHistory', JSON.stringify(history));
+                    renderHistory();
+                }
+            }
+        }
+
+        // --- 7. History ---
+        function addToHistory(poem, itemObj) {
+            history.unshift({
+                timestamp: new Date().toLocaleString('fa-IR'),
+                ...itemObj,
+                poem: poem 
+            });
+            localStorage.setItem('geminiPoemHistory', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            list.innerHTML = '';
+            if (history.length === 0) {
+                list.innerHTML = '<div class="text-center mt-10 text-slate-400 text-xs">تاریخچه خالی است</div>';
+                return;
+            }
+
+            history.forEach(item => {
+                const isFav = item.isFavorite;
+                const hasExp = item.explanation ? true : false;
+                
+                const div = document.createElement('div');
+                div.className = `bg-white dark:bg-secondary border ${isFav ? 'border-accent/50' : 'border-slate-100 dark:border-slate-700'} rounded-xl p-3 shadow-sm relative group mb-3`;
+                
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="flex items-center gap-1">
+                                ${isFav ? '<i class="fa-solid fa-heart text-accent text-xs"></i>' : ''}
+                                <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200">${item.topic}</h3>
+                            </div>
+                            <span class="text-[10px] text-slate-400">${item.timestamp}</span>
+                        </div>
+                        <button onclick="toggleFavorite(event, ${item.id})" class="w-8 h-8 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center transition ${isFav ? 'text-accent' : 'text-slate-300 hover:text-accent'}">
+                            <i class="${isFav ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-6 font-medium mb-3">${item.poem.substring(0, 80)}...</p>
+                    
+                    ${hasExp ? `<div class="bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded mb-2 text-[10px] text-indigo-600 dark:text-indigo-300 truncate"><i class="fa-solid fa-book-open ml-1"></i>دارای تفسیر</div>` : ''}
+
+                    <div class="flex justify-end gap-2 border-t border-slate-100 dark:border-slate-700 pt-2">
+                         <button onclick="deleteHistoryItem(event, ${item.id})" class="text-[10px] text-red-400 px-2 py-1 hover:bg-red-50 dark:hover:bg-red-900/10 rounded"><i class="fa-solid fa-trash"></i></button>
+                         <button onclick="openEditModal(${item.id})" class="text-[10px] text-primary bg-primary/5 px-3 py-1 rounded hover:bg-primary hover:text-white transition"><i class="fa-solid fa-pen"></i> نمایش کامل</button>
+                    </div>
+                `;
+                div.addEventListener('click', (e) => { if(!e.target.closest('button')) openEditModal(item.id); });
+                list.appendChild(div);
+            });
+        }
+
+        function toggleFavorite(e, id) {
+            e.stopPropagation();
+            const idx = history.findIndex(h => h.id === id);
+            if (idx > -1) {
+                history[idx].isFavorite = !history[idx].isFavorite;
+                localStorage.setItem('geminiPoemHistory', JSON.stringify(history));
+                renderHistory();
+            }
+        }
+
+        function deleteHistoryItem(e, id) {
+            e.stopPropagation();
+            if (confirm('حذف شود؟')) {
+                history = history.filter(h => h.id !== id);
+                localStorage.setItem('geminiPoemHistory', JSON.stringify(history));
+                renderHistory();
+            }
+        }
+
+        function clearHistory() {
+            if (confirm('کل تاریخچه پاک شود؟')) {
+                history = [];
+                localStorage.removeItem('geminiPoemHistory');
+                renderHistory();
+            }
+        }
+
+        // --- 8. Modals ---
+        function openEditModal(id) {
+            const item = history.find(h => h.id === id);
+            if (!item) return;
+            currentEditingId = id;
+            currentPoemId = id; // Sync current ID so we can explain historic items
+
+            let content = `
+                <label class="text-[10px] text-slate-400 block mb-1">متن شعر:</label>
+                <textarea id="modalTextarea" class="w-full h-48 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm leading-8 focus:border-primary focus:outline-none dark:text-slate-200 resize-none mb-4">${item.poem}</textarea>
+            `;
+
+            if (item.explanation) {
+                content += `
+                    <label class="text-[10px] text-indigo-400 block mb-1">تفسیر ذخیره شده:</label>
+                    <div class="bg-indigo-50 dark:bg-indigo-900/10 p-3 rounded-xl text-xs leading-6 text-slate-700 dark:text-slate-300 max-h-40 overflow-y-auto">${item.explanation}</div>
+                `;
+            } else {
+                content += `
+                    <button onclick="explainPoemFromModal()" class="w-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 text-xs py-2 rounded-lg border border-indigo-100 dark:border-indigo-800">
+                        <i class="fa-solid fa-magic ml-1"></i>دریافت تفسیر برای این شعر
+                    </button>
+                `;
+            }
+
+            openModal(item.topic, content, true);
+        }
+
+        async function explainPoemFromModal() {
+             // Logic to explain poem when opened from history
+             document.getElementById('poemOutput').innerText = document.getElementById('modalTextarea').value; 
+             closeModal();
+             await explainPoem();
+        }
+
+        function openModal(title, contentHtml, showFooter) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalBody').innerHTML = contentHtml;
+            document.getElementById('modalFooter').className = showFooter ? 'p-4 border-t border-slate-100 dark:border-slate-700 flex gap-2' : 'hidden';
+            
+            const modal = document.getElementById('modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); document.getElementById('modalContent').classList.remove('scale-95'); }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            modal.classList.add('opacity-0');
+            document.getElementById('modalContent').classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            currentEditingId = null;
+        }
+
+        function saveEdit() {
+            if (!currentEditingId) return;
+            const val = document.getElementById('modalTextarea').value;
+            const idx = history.findIndex(h => h.id === currentEditingId);
+            if (idx > -1) {
+                history[idx].poem = val;
+                localStorage.setItem('geminiPoemHistory', JSON.stringify(history));
+                renderHistory();
+                closeModal();
+                showToast('تغییرات ذخیره شد', 'success');
+            }
+        }
+
+        function copyToClipboard(id) {
+            const el = document.getElementById(id);
+            const text = el.innerText || el.value;
+            navigator.clipboard.writeText(text).then(() => showToast('کپی شد', 'success'));
+        }
+    </script>
+</body>
+</html>
+

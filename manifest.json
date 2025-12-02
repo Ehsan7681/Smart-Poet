@@ -1,0 +1,23 @@
+{
+  "name": "Gemini Poet AI",
+  "short_name": "Gemini Poet",
+  "description": "Smart Persian poem generator using Gemini AI",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
+
